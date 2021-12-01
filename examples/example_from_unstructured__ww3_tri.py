@@ -5,7 +5,8 @@
 import netCDF4 as nc
 import geovista as gv
 
-d = nc.Dataset('./ww3.201809_hs.nc')
+# Path on MetOffice linux system:
+d = nc.Dataset('/home/h06/frey/ww3.201809_hs.nc')
 lon = d.variables['longitude'][:]
 lat = d.variables['latitude'][:]
 tri = d.variables['tri'][:]
