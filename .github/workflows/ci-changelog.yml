@@ -76,6 +76,9 @@ jobs:
           PR: "${{ github.event.number }}"
         working-directory: .github/scripts
         run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
           python -m pip install click towncrier
           python -c "import sys; print(f'version = {sys.version}')"
           towncrier --version
