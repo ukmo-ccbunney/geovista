@@ -52,6 +52,24 @@ jobs:
               - 'changelog/**'
           list-files: 'csv'
 
+      - name: 'rename changelog placeholder files'
+        if: ${{ ! contains(fromJSON(env.LABELS), 'skip-changelog') }}
+        env:
+          CHANGELOG: "${{ steps.changes.outputs.changelog_files }}"
+          PR: "${{ github.event.number }}"
+        run: |
+          FILES="${CHANGELOG}/X.*.rst}"
+          if test -z ${FILES}; then
+            echo "No placeholder changelog files to rename."
+            exit 0
+          fi
+
+          for FILE in ${FILES}; do
+            NEW_FILE=$(echo ${FILE} | sed "s/^X\./${PR}\./")
+            #git mv "${FILE}" "${NEW_FILE}"
+            echo "Renaming ${FILE} => ${NEW_FILE}"
+          done
+
       - name: 'validate changelog'
         if: ${{ ! contains(fromJSON(env.LABELS), 'skip-changelog') }}
         env:
