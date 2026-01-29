@@ -284,20 +284,20 @@ def rename_fragment_pr(
 
     git_cmd = shutil.which("git")
     if git_cmd is None:
-        output("WARNIG: `git` command not found; unable to rename changelog fragment.")
+        output("⚠️ WARNING: `git` command not found; unable to rename changelog fragment.")
         return "X"
 
     try:
         subprocess.run(
-            [git_cmd, "mv", current_filename, new_filename],
+            [git_cmd, "mv", str(current_filename), str(new_filename)],
             check=True
         )
         subprocess.run([
             git_cmd, "commit", "-m",
-            f"Rename changelog fragment {current_filename} to {new_filename}"
+            f"Rename changelog fragment {current_filename.name} to {new_filename.name}"
         ], check=True)
     except subprocess.CalledProcessError as e:
-        output(f"WARNING: Failed to rename changelog fragment: {e}")
+        output(f"⚠️ WARNING: Failed to rename changelog fragment: {e}")
         return "X"
 
     return pr
@@ -378,7 +378,8 @@ def main(pr: str, changelog: str, verbose: bool) -> None:
 
         if fragment_pr == "X":
             # X is used as a placeholder for the PR number
-            fragment_pr = rename_fragment_pr(fragment_parts, base_directory, pr)
+            fragment_pr = rename_fragment_pr(fragment_parts, changelog_base, pr)
+            fragment = f"{fragment_pr}.{fragment_type}.{fragment_ext}"  # noqa: PLW2901
 
         if fragment_pr == pr:
             provided = True
