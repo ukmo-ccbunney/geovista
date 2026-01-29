@@ -58,16 +58,15 @@ jobs:
           CHANGELOG: "${{ steps.changes.outputs.changelog_files }}"
           PR: "${{ github.event.number }}"
         run: |
-          FILES="${CHANGELOG}/X.*.rst}"
-          if test -z ${FILES}; then
-            echo "No placeholder changelog files to rename."
-            exit 0
-          fi
-
-          for FILE in ${FILES}; do
-            NEW_FILE=$(echo ${FILE} | sed "s/^X\./${PR}\./")
-            #git mv "${FILE}" "${NEW_FILE}"
-            echo "Renaming ${FILE} => ${NEW_FILE}"
+          for FILEPATH in ${CHANGELOG//,/ }; do
+              BASE=$(dirname ${FILEPATH})
+              FILENAME=$(basename ${FILEPATH})
+              if [[ ${FILENAME} == X.* ]]; then
+                  #git mv "${FILE}" "${NEW_FILE}"
+                  NEW_FILEPATH="${BASE}/$(echo ${FILENAME} | sed "s/^X\./${PR}\./")"
+                  echo "Renaming ${FILEPATH} => ${NEW_FILEPATH}"
+                  #git mv "${FILEPATH}" "${NEW_FILEPATH}"
+              fi
           done
 
       - name: 'validate changelog'
