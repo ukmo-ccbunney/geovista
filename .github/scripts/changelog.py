@@ -250,6 +250,57 @@ def summary(msg: str) -> None:
     output(msg)
 
 
+def rename_fragment_pr(
+    fragment_parts: list[str],
+    base_directory: Path,
+    pr: str
+) -> str:
+    """Rename placeholder in news fragment file name with PR number.
+
+    Parameters
+    ----------
+    fragment_parts : list of str
+        The parts of the news fragment file name.
+    base_directory : Path
+        The absolute path to the changelog directory containing the
+        news fragments.
+    pr : str
+        The pull-request number.
+
+    Returns
+    -------
+    str
+        The renamed PR number.
+
+    Notes
+    -----
+    .. versionadded:: 0.6.0
+
+    """
+    current_filename = base_directory / ".".join(fragment_parts)
+    new_filename = base_directory / (f"{pr}." + ".".join(fragment_parts[1:]))
+
+    git_cmd = shutil.which("git")
+    if git_cmd is None:
+        output("WARNIG: `git` command not found; unable to rename changelog fragment.")
+        return "X"
+
+    try:
+        subprocess.run(
+            [git_cmd, "mv", current_filename, new_filename],
+            check=True
+        )
+        subprocess.run([
+            git_cmd, "commit", "-m",
+            f"Rename changelog fragment {current_filename} to {new_filename}"
+        ], check=True)
+    except subprocess.CalledProcessError as e:
+        output(f"WARNING: Failed to rename changelog fragment: {e}")
+        return "X"
+
+    return pr
+
+
 @click.command()
 @click.argument("pr", type=click.STRING)
 @click.argument("changelog", type=click.STRING)
@@ -322,6 +373,10 @@ def main(pr: str, changelog: str, verbose: bool) -> None:
             continue
 
         fragment_pr, fragment_type, fragment_ext = fragment_parts
+
+        if fragment_pr == "X":
+            # X is used as a placeholder for the PR number
+            fragment_pr = rename_fragment_pr(fragment_parts, base_directory, pr)
 
         if fragment_pr == pr:
             provided = True
